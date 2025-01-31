@@ -3,6 +3,8 @@ import email
 import sys
 from email.header import decode_header
 from datetime import datetime
+from tabnanny import check
+
 
 def connect():
     mail_pass = "mry7SdQtf1fPXiMqekbi"
@@ -17,6 +19,7 @@ def find_message_id(value, folder, imap):
     for item in folder:
         res, msg = imap.uid("fetch", item, "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
+
         if msg["Message-ID"].lstrip("<").rstrip(">") == value:
             print("Bingo")
             check = 1
@@ -25,38 +28,42 @@ def find_message_id(value, folder, imap):
         print("No such email")
 
 def find_message_email(value, folder, imap):
-    check = 0
-    for item in folder:
-        res, msg = imap.uid("fetch", item, "(RFC822)")
+    print(folder)
+    count=0
+    check=len(folder)
+    while count<len(folder):
+        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
         if msg["From"].split(" ")[1].rstrip(">").lstrip("<") == value:
-            print("Bingo")
-            check = 1
-            break
-    if not check:
+            count += 1
+        else:
+            folder.pop(count)
+    if len(folder)<check:
         print("No such email")
 
+
 def find_message_sender(value, folder, imap):
-    check = 0
-    for item in folder:
-        res, msg = imap.uid("fetch", item, "(RFC822)")
+    count = 0
+    check = len(folder)
+    while count < len(folder):
+        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
         encoding=decode_header(msg["From"])[0][1]
-
         if not encoding is None:
             name = decode_header(msg["From"])[0][0].decode(encoding)
         else:
             name = decode_header(msg["From"])[0][0].split(" ")[0]
         if name == value:
-            print("Bingo")
-            check = 1
-            break
-    if not check:
-        print("No such email")
+            count+=1
+        else:
+            folder.pop(count)
+    if  check>len(folder):
+        print("No such sender")
 
 def find_message_date(value, folder, imap, mark):
-    for item in folder:
-        res, msg = imap.uid("fetch", item, "(RFC822)")
+    count = 0
+    while count < len(folder):
+        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
         date=msg["Date"].split(" ")
         date=date[2]+" "+date[1]+", " +date[3]
@@ -64,14 +71,14 @@ def find_message_date(value, folder, imap, mark):
         date_value = datetime.strptime(value, "%Y-%m-%d").date()
         if mark=="from":
             if date_email >= date_value:
-                print("YES")
+                count+=1
             else:
-                print("NO")
+                folder.pop(count)
         else:
             if date_email <= date_value:
-                print("YES")
+                count+=1
             else:
-                print("NO")
+                folder.pop(count)
 
 
 def main():
@@ -93,7 +100,6 @@ def main():
             find_message_date(arg[12:], folder, imap, "from")
         elif arg[:10]=="--date-to=":
             find_message_date(arg[10:], folder, imap, "to")
-
     imap.logout()
 
 
