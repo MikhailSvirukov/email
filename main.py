@@ -14,71 +14,42 @@ def connect():
     imap.login(username, mail_pass)
     return imap
 
-def find_message_id(value, folder, imap):
-    check = 0
-    for item in folder:
-        res, msg = imap.uid("fetch", item, "(RFC822)")
-        msg = email.message_from_bytes(msg[0][1])
+def find_message_id(value, folder, msg):
+    if msg["Message-ID"].lstrip("<").rstrip(">") == value:
+        print("Bingo")
 
-        if msg["Message-ID"].lstrip("<").rstrip(">") == value:
-            print("Bingo")
-            check = 1
-            break
-    if not check:
-        print("No such email")
-
-def find_message_email(value, folder, imap):
-    print(folder)
-    count=0
-    check=len(folder)
-    while count<len(folder):
-        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-        msg = email.message_from_bytes(msg[0][1])
-        if msg["From"].split(" ")[1].rstrip(">").lstrip("<") == value:
-            count += 1
-        else:
+def find_message_email(value, folder, msg, count):
+        if msg["From"].split(" ")[1].rstrip(">").lstrip("<") != value:
             folder.pop(count)
-    if len(folder)<check:
-        print("No such email")
+            return count+1
+        return count
 
 
-def find_message_sender(value, folder, imap):
-    count = 0
-    check = len(folder)
-    while count < len(folder):
-        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-        msg = email.message_from_bytes(msg[0][1])
+def find_message_sender(value, folder, msg, count):
         encoding=decode_header(msg["From"])[0][1]
         if not encoding is None:
             name = decode_header(msg["From"])[0][0].decode(encoding)
         else:
             name = decode_header(msg["From"])[0][0].split(" ")[0]
-        if name == value:
-            count+=1
-        else:
+        if name != value:
             folder.pop(count)
-    if  check>len(folder):
-        print("No such sender")
+            return count+1
+        return count
 
-def find_message_date(value, folder, imap, mark):
-    count = 0
-    while count < len(folder):
-        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-        msg = email.message_from_bytes(msg[0][1])
+def find_message_date(value, folder, msg, mark, count):
         date=msg["Date"].split(" ")
         date=date[2]+" "+date[1]+", " +date[3]
         date_email = datetime.strptime(date, "%b %d, %Y").date()
         date_value = datetime.strptime(value, "%Y-%m-%d").date()
         if mark=="from":
-            if date_email >= date_value:
-                count+=1
-            else:
+            if date_email < date_value:
                 folder.pop(count)
+                return count+1
         else:
-            if date_email <= date_value:
-                count+=1
-            else:
+            if date_email > date_value:
                 folder.pop(count)
+                return count+1
+        return count
 
 
 def main():
@@ -89,17 +60,36 @@ def main():
     imap.select("INBOX")
     res, folder = imap.uid("search",  "ALL")
     folder = folder[0].decode().split(" ")
-    for arg in argv:
-        if arg[:5]=="--id=":
-            find_message_id(arg[5:], folder, imap)
-        elif arg[:8]=="--email=":
-            find_message_email(arg[8:], folder, imap)
-        elif arg[:9]=="--sender=":
-            find_message_sender(arg[9:], folder, imap)
-        elif arg[:12]=="--date-from=":
-            find_message_date(arg[12:], folder, imap, "from")
-        elif arg[:10]=="--date-to=":
-            find_message_date(arg[10:], folder, imap, "to")
+    count = 0
+    check = len(folder)
+    while count < len(folder):
+        check=0
+        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
+        msg = email.message_from_bytes(msg[0][1])
+        for arg in argv:
+            if arg[:5]=="--id=":
+                find_message_id(arg[5:], folder, msg)
+            elif arg[:8]=="--email=":
+                if find_message_email(arg[8:], folder, msg, count)>count:
+                    check=1
+                    break
+            elif arg[:9]=="--sender=":
+                if find_message_sender(arg[9:], folder, msg, count)>count:
+                    check = 1
+                    break
+            elif arg[:12]=="--date-from=":
+                if find_message_date(arg[12:], folder, msg, "from", count)> count:
+                    check = 1
+                    break
+            elif arg[:10]=="--date-to=":
+                if find_message_date(arg[10:], folder, msg, "to", count)> count:
+                    check = 1
+                    break
+        if check==0:
+            count+=1
+    print(folder)
+    if not len(folder):
+        print("No such email")
     imap.logout()
 
 
