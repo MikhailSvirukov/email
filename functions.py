@@ -106,10 +106,7 @@ def print_message(folder, imap, folder_save, count):
     if msg["Subject"] is not None:
         encoding_subj = decode_header(msg["Subject"])[0][1]
         if not encoding_subj is None:
-            if encoding_subj  in ("unknown-8bit"):
-                subj = decode_header(msg["Subject"])[0][0].decode("8bit")
-            else:
-                subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
+            subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
         else:
             subj = decode_header(msg["Subject"])[0][0]
     with open("text.txt", 'w') as f:
