@@ -56,7 +56,10 @@ def find_message_date_from(value, folder, msg, count):
 def find_message_date_to(value, folder, msg, count):
     date=msg["Date"].split(" ")
     date=date[2]+" "+date[1]+", " +date[3]
-    date_email = datetime.strptime(date, "%b %d, %Y").date()
+    try:
+        date_email = datetime.strptime(date, "%b %d, %Y").date()
+    except:
+        date_email = datetime.strptime(date, "%d %b, %Y").date()
     date_value = datetime.strptime(value, "%Y-%m-%d").date()
     if date_email > date_value:
         folder.pop(count)
@@ -91,10 +94,11 @@ def main():
     imap.select("INBOX")
     res, folder = imap.uid("search",  "ALL")
     folder = folder[0].decode().split(" ")
-    count = 0
-
-
+    count = 95
+    print(len(folder))
     while count < len(folder):
+
+        print(count)
         check=0
         res, msg = imap.uid("fetch", folder[count], "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
@@ -108,16 +112,13 @@ def main():
                         break
                 item+=1
         if check==0:
-            count+=1
-
+            if not functions.print_message(folder, imap, config.folder, count):
+                functions.get_attachments(folder, imap, config.folder, count)
+            else:
+                os.chdir(config.base_dir)
+            count += 1
     if not len(folder):
         print("No such email")
-    else:
-        count=0
-        while count<len(folder):
-            functions.print_message(folder, imap, config.folder, count)
-            functions.get_attachments(folder, imap, config.folder, count)
-            count+=1
     imap.logout()
 
 

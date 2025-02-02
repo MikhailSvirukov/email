@@ -92,18 +92,31 @@ def print_folder(folder, imap):
 def print_message(folder, imap, folder_save, count):
     res, msg = imap.uid("fetch", folder[count], "(RFC822)")
     msg = email.message_from_bytes(msg[0][1])
-    dir_name = msg["From"].split(" ")[1].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
+    try:
+        dir_name = msg["From"].split(" ")[1].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
+    except:
+        dir_name = msg["From"].split(" ")[0].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
+
     if not os.path.isdir(folder_save + dir_name):
         os.mkdir(folder_save + dir_name)
-    os.chdir(folder_save + dir_name)
-    encoding_subj = decode_header(msg["Subject"])[0][1]
-    if not encoding_subj is None:
-        subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
     else:
-        subj = decode_header(msg["Subject"])[0][0]
+        return 1
+    os.chdir(folder_save + dir_name)
+    subj=" "
+    if msg["Subject"] is not None:
+        encoding_subj = decode_header(msg["Subject"])[0][1]
+        if not encoding_subj is None:
+            if encoding_subj  in ("unknown-8bit"):
+                subj = decode_header(msg["Subject"])[0][0].decode("8bit")
+            else:
+                subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
+        else:
+            subj = decode_header(msg["Subject"])[0][0]
     with open("text.txt", 'w') as f:
         f.write("Тема: "+subj)
-        f.write(get_letter_text(msg))
+        if get_letter_text(msg) is not None:
+            f.write(get_letter_text(msg))
+    return 0
 
 
 
@@ -113,7 +126,10 @@ def get_attachments(folder, imap, folder_save, count):
     for part in msg.walk():
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
-            with open(decode_header(folder_save+part.get_filename())[0][0].decode(encoding), 'wb') as f:
-                f.write()
-                f.write(part.get_payload(decode=True))
+            if encoding is not None:
+                with open(decode_header(part.get_filename())[0][0].decode(encoding), 'wb') as f:
+                    f.write(part.get_payload(decode=True))
+            else:
+                with open(decode_header(part.get_filename())[0][0], 'wb') as f:
+                    f.write(part.get_payload(decode=True))
     os.chdir(config.base_dir)

@@ -1,7 +1,7 @@
 import os
 
-mail="svmk17@mail.ru"
-password = "mry7SdQtf1fPXiMqekbi"
+mail="lestevan@mail.ru"
+password = "Y0erY2EgkqXEAZhyBith"
 server = "imap.mail.ru"
-folder=""
-base_dir=os.getcwd()
+folder="/media/mihailsvirukov/C93204748D4C2897/lestevan@mail.ru/"
+base_dir="/home/mihailsvirukov/PycharmProjects/email"
