@@ -1,4 +1,6 @@
 import base64
+
+import config
 import functions
 import imaplib
 import email
@@ -10,9 +12,9 @@ from bs4 import BeautifulSoup
 import os
 
 def connect():
-    mail_pass = "mry7SdQtf1fPXiMqekbi"
-    username = "svmk17@mail.ru"
-    imap_server = "imap.mail.ru"
+    mail_pass = config.password
+    username = config.mail
+    imap_server = config.server
     imap = imaplib.IMAP4_SSL(imap_server)
     imap.login(username, mail_pass)
     return imap
@@ -82,8 +84,6 @@ def arg_action(name, value, folder, msg, count):
     return name(value, folder, msg, count)
 
 def main():
-    folder_save=""
-
     argv=sys.argv
     imap = connect()
     if not imap:
@@ -107,19 +107,17 @@ def main():
                         check = 1
                         break
                 item+=1
-            if arg[:8]=="--folder":
-                if len(arg)>9:
-                    folder_save=arg[9:]
         if check==0:
             count+=1
 
     if not len(folder):
         print("No such email")
-    elif len(folder)>1:
-        functions.print_folder(folder, imap)
     else:
-        functions.print_message(folder, imap, folder_save)
-        functions.get_attachments(folder, imap, folder_save)
+        count=0
+        while count<len(folder):
+            functions.print_message(folder, imap, config.folder, count)
+            functions.get_attachments(folder, imap, config.folder, count)
+            count+=1
     imap.logout()
 
 

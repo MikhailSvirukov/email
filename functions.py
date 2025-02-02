@@ -8,6 +8,9 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import os
 
+import config
+
+
 def letter_type(part):
     if part["Content-Transfer-Encoding"] == "base64":
         encoding = part.get_content_charset()
@@ -86,20 +89,31 @@ def print_folder(folder, imap):
         count+=1
 
 #works only with list with single element
-def print_message(folder, imap, folder_save):
-    res, msg = imap.uid("fetch", folder[0], "(RFC822)")
+def print_message(folder, imap, folder_save, count):
+    res, msg = imap.uid("fetch", folder[count], "(RFC822)")
     msg = email.message_from_bytes(msg[0][1])
-    with open(folder_save + "text.txt", 'w') as f:
+    dir_name = msg["From"].split(" ")[1].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
+    if not os.path.isdir(folder_save + dir_name):
+        os.mkdir(folder_save + dir_name)
+    os.chdir(folder_save + dir_name)
+    encoding_subj = decode_header(msg["Subject"])[0][1]
+    if not encoding_subj is None:
+        subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
+    else:
+        subj = decode_header(msg["Subject"])[0][0]
+    with open("text.txt", 'w') as f:
+        f.write("Тема: "+subj)
         f.write(get_letter_text(msg))
 
 
 
-def get_attachments(folder, imap, folder_save):
-    res, msg = imap.uid("fetch", folder[0], "(RFC822)")
+def get_attachments(folder, imap, folder_save, count):
+    res, msg = imap.uid("fetch", folder[count], "(RFC822)")
     msg = email.message_from_bytes(msg[0][1])
     for part in msg.walk():
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
-            print(decode_header(part.get_filename())[0][0].decode(encoding))
             with open(decode_header(folder_save+part.get_filename())[0][0].decode(encoding), 'wb') as f:
+                f.write()
                 f.write(part.get_payload(decode=True))
+    os.chdir(config.base_dir)
