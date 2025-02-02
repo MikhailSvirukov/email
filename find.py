@@ -1,29 +1,10 @@
-import base64
-
-import config
 import functions
-import imaplib
 import email
-import quopri
 import sys
 from email.header import decode_header
 from datetime import datetime
-from bs4 import BeautifulSoup
-import os
 
-def connect():
-    mail_pass = config.password
-    username = config.mail
-    imap_server = config.server
-    imap = imaplib.IMAP4_SSL(imap_server)
-    imap.login(username, mail_pass)
-    return imap
 
-def find_message_id(value, folder, msg, count):
-    if msg["Message-ID"].lstrip("<").rstrip(">") != value:
-        folder.pop(count)
-        return count + 1
-    return count
 
 
 def find_message_email(value, folder, msg, count):
@@ -80,7 +61,7 @@ list_of_functions=[
     find_message_sender,
     find_message_date_from,
     find_message_date_to,
-    find_message_id
+    functions.find_message_id
 ]
 
 def arg_action(name, value, folder, msg, count):
@@ -88,17 +69,14 @@ def arg_action(name, value, folder, msg, count):
 
 def main():
     argv=sys.argv
-    imap = connect()
+    imap = functions.connect()
     if not imap:
         sys.exit()
     imap.select("INBOX")
     res, folder = imap.uid("search",  "ALL")
     folder = folder[0].decode().split(" ")
-    count = 95
-    print(len(folder))
+    count=0
     while count < len(folder):
-
-        print(count)
         check=0
         res, msg = imap.uid("fetch", folder[count], "(RFC822)")
         msg = email.message_from_bytes(msg[0][1])
@@ -112,19 +90,12 @@ def main():
                         break
                 item+=1
         if check==0:
-            if not functions.print_message(folder, imap, config.folder, count):
-                functions.get_attachments(folder, imap, config.folder, count)
-            else:
-                os.chdir(config.base_dir)
             count += 1
     if not len(folder):
         print("No such email")
+    else:
+        functions.print_folder(folder, imap)
     imap.logout()
-
-
-
-
-
 
 if __name__ == "__main__":
     main()

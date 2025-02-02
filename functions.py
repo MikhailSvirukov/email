@@ -1,15 +1,25 @@
 import base64
-import imaplib
 import email
+import imaplib
 import quopri
-import sys
 from email.header import decode_header
-from datetime import datetime
 from bs4 import BeautifulSoup
 import os
-
 import config
 
+def connect():
+    mail_pass = config.password
+    username = config.mail
+    imap_server = config.server
+    imap = imaplib.IMAP4_SSL(imap_server)
+    imap.login(username, mail_pass)
+    return imap
+
+def find_message_id(value, folder, msg, count):
+    if msg["Message-ID"].lstrip("<").rstrip(">") != value:
+        folder.pop(count)
+        return count + 1
+    return count
 
 def letter_type(part):
     if part["Content-Transfer-Encoding"] == "base64":
@@ -88,20 +98,7 @@ def print_folder(folder, imap):
         print(objects)
         count+=1
 
-#works only with list with single element
-def print_message(folder, imap, folder_save, count):
-    res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-    msg = email.message_from_bytes(msg[0][1])
-    try:
-        dir_name = msg["From"].split(" ")[1].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
-    except:
-        dir_name = msg["From"].split(" ")[0].rstrip(">").lstrip("<") + msg["Date"].replace(" ", "")
-
-    if not os.path.isdir(folder_save + dir_name):
-        os.mkdir(folder_save + dir_name)
-    else:
-        return 1
-    os.chdir(folder_save + dir_name)
+def print_message(msg):
     subj=" "
     if msg["Subject"] is not None:
         encoding_subj = decode_header(msg["Subject"])[0][1]
@@ -113,13 +110,8 @@ def print_message(folder, imap, folder_save, count):
         f.write("Тема: "+subj)
         if get_letter_text(msg) is not None:
             f.write(get_letter_text(msg))
-    return 0
 
-
-
-def get_attachments(folder, imap, folder_save, count):
-    res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-    msg = email.message_from_bytes(msg[0][1])
+def get_attachments(msg):
     for part in msg.walk():
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
@@ -130,3 +122,20 @@ def get_attachments(folder, imap, folder_save, count):
                 with open(decode_header(part.get_filename())[0][0], 'wb') as f:
                     f.write(part.get_payload(decode=True))
     os.chdir(config.base_dir)
+
+def save_message(folder, imap, count):
+    res, msg = imap.uid("fetch", folder[count], "(RFC822)")
+    msg = email.message_from_bytes(msg[0][1])
+    address = msg["From"].split(" ")[1].rstrip(">").lstrip("<")
+    date = msg["Date"].replace(" ", "")
+    if not os.path.isdir(config.folder + "/"+address):
+        os.mkdir(config.folder + "/" + address)
+    if not os.path.isdir(config.folder + "/"+address+"/"+date):
+        os.mkdir(config.folder + "/" + address+"/"+date)
+    os.chdir(config.folder + "/" + address+"/"+date)
+    print_message(msg)
+    get_attachments(msg)
+    os.chdir(config.base_dir)
+
+
+
