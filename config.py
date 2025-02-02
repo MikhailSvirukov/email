@@ -1,7 +1,6 @@
-import os
-
-mail="lestevan@mail.ru"
-password = "Y0erY2EgkqXEAZhyBith"
+mail="svmk17@mail.ru"
+password = "7RCVgS5r837UkGRQdf7L"
 server = "imap.mail.ru"
-folder="/media/mihailsvirukov/C93204748D4C2897/lestevan@mail.ru/"
+folder_save="/home/mihailsvirukov/Документы/emails/inbox/"
+folder_send="/home/mihailsvirukov/Документы/emails/send/"
 base_dir="/home/mihailsvirukov/PycharmProjects/email"

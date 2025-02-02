@@ -128,11 +128,11 @@ def save_message(folder, imap, count):
     msg = email.message_from_bytes(msg[0][1])
     address = msg["From"].split(" ")[1].rstrip(">").lstrip("<")
     date = msg["Date"].replace(" ", "")
-    if not os.path.isdir(config.folder + "/"+address):
-        os.mkdir(config.folder + "/" + address)
-    if not os.path.isdir(config.folder + "/"+address+"/"+date):
-        os.mkdir(config.folder + "/" + address+"/"+date)
-    os.chdir(config.folder + "/" + address+"/"+date)
+    if not os.path.isdir(config.folder_save + "/"+address):
+        os.mkdir(config.folder_save + "/" + address)
+    if not os.path.isdir(config.folder_save + "/"+address+"/"+date):
+        os.mkdir(config.folder_save + "/" + address+"/"+date)
+    os.chdir(config.folder_save + "/" + address+"/"+date)
     print_message(msg)
     get_attachments(msg)
     os.chdir(config.base_dir)
