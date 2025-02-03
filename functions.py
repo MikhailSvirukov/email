@@ -93,7 +93,7 @@ def print_found(msg):
         print(objects)
 
 
-def print_message(msg):
+def print_message(dir, msg):
     subj=" "
     if msg["Subject"] is not None:
         encoding_subj = decode_header(msg["Subject"])[0][1]
@@ -101,23 +101,21 @@ def print_message(msg):
             subj = decode_header(msg["Subject"])[0][0].decode(encoding_subj)
         else:
             subj = decode_header(msg["Subject"])[0][0]
-    with open("text.txt", 'w') as f:
+    with open(dir+"text.txt", 'w') as f:
         f.write("Тема: "+subj)
         if get_letter_text(msg) is not None:
             f.write(get_letter_text(msg))
 
-def get_attachments(msg):
+def get_attachments(dir, msg):
     for part in msg.walk():
-        print(part)
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
             if encoding is not None:
-                with open(decode_header(part.get_filename())[0][0].decode(encoding), 'wb') as f:
+                with open(dir+decode_header(part.get_filename())[0][0].decode(encoding), 'wb') as f:
                     f.write(part.get_payload(decode=True))
             else:
-                with open(decode_header(part.get_filename())[0][0], 'wb') as f:
+                with open(dir+decode_header(part.get_filename())[0][0], 'wb') as f:
                     f.write(part.get_payload(decode=True))
-    os.chdir(config.base_dir)
 
 def save_message(folder, imap, count):
     res, msg = imap.uid("fetch", folder[count], "(RFC822)")
@@ -128,10 +126,10 @@ def save_message(folder, imap, count):
         os.mkdir(config.folder_save + address)
     if not os.path.isdir(config.folder_save +address+"/"+date):
         os.mkdir(config.folder_save +address+"/"+date)
-    os.chdir(config.folder_save + address+"/"+date)
-    print_message(msg)
-    get_attachments(msg)
-    os.chdir(config.base_dir)
+    dir=config.folder_save + address+"/"+date+"/"
+    print_message(dir, msg)
+    get_attachments(dir, msg)
+
 
 
 

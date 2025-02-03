@@ -1,11 +1,10 @@
+#!/usr/bin/env python3
+
 import functions
 import email
 import sys
 from email.header import decode_header
 from datetime import datetime
-
-
-
 
 def find_message_email(value, folder, msg, count):
     if msg["From"].split(" ")[1].rstrip(">").lstrip("<") != value:
