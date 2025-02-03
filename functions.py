@@ -108,7 +108,6 @@ def print_message(msg):
 
 def get_attachments(msg):
     for part in msg.walk():
-        print(part)
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
             if encoding is not None:
