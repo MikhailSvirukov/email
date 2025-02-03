@@ -36,13 +36,10 @@ def main():
         addresses.append(args.to)
     else:
         with open(args.group, "r") as f:
-            mail = f.readline()
-            while mail is not None:
-                addresses.append(mail)
-                mail=f.readline()
+            addresses = f.read().splitlines()
     dir_name=config.folder_send+args.source+"/"
     files=os.listdir(dir_name)
-
+    print(addresses)
     for file in files:
         if file!="text.txt":
             attributes=magic.Magic(mime=True).from_file(dir_name+file).split("/")
