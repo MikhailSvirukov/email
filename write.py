@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 
 
 def connect():
-    smtpobj = smtplib.SMTP('smtp.mail.ru', 587)
+    smtpobj = smtplib.SMTP(config.server_smtp, 587)
     smtpobj.starttls()
     smtpobj.login(config.mail, config.password)
     return smtpobj

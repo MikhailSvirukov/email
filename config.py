@@ -1,6 +1,7 @@
 mail="your email"
 password = "your password"
-server = "your server name (imap.example.com)"
+server_imap = "your imap server name (imap.example.com)"
+server_smtp ="your smtp server name (smtp.example.com)"
 folder_save="default path to save email"
 folder_send="default path to search for folder to create and send message"
 base_dir="project directory"

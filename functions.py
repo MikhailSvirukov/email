@@ -10,7 +10,7 @@ import config
 def connect():
     mail_pass = config.password
     username = config.mail
-    imap_server = config.server
+    imap_server = config.server_imap
     imap = imaplib.IMAP4_SSL(imap_server)
     imap.login(username, mail_pass)
     return imap
@@ -69,12 +69,7 @@ def get_letter_text(msg):
             count += 1
             return letter_text.replace("<", "").replace(">", "").replace("\xa0", " ")
 
-def print_folder(folder, imap):
-    count = 0
-    while count < len(folder):
-        res, msg = imap.uid("fetch", folder[count], "(RFC822)")
-        msg = email.message_from_bytes(msg[0][1])
-
+def print_found(msg):
         objects = dict()
 
         encoding_send = decode_header(msg["From"])[0][1]
@@ -96,7 +91,7 @@ def print_folder(folder, imap):
         objects["message-id"]=msg["Message-ID"].lstrip("<").rstrip(">")
 
         print(objects)
-        count+=1
+
 
 def print_message(msg):
     subj=" "

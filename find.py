@@ -90,11 +90,10 @@ def main():
                         break
                 item+=1
         if check==0:
+            functions.print_found(msg)
             count += 1
     if not len(folder):
         print("No such email")
-    else:
-        functions.print_folder(folder, imap)
     imap.logout()
 
 if __name__ == "__main__":
