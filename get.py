@@ -1,6 +1,4 @@
-import config
 import functions
-import imaplib
 import email
 import sys
 

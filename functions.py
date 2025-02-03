@@ -113,6 +113,7 @@ def print_message(msg):
 
 def get_attachments(msg):
     for part in msg.walk():
+        print(part)
         if part.get_content_disposition() == 'attachment':
             encoding=decode_header(part.get_filename())[0][1]
             if encoding is not None:
@@ -128,11 +129,11 @@ def save_message(folder, imap, count):
     msg = email.message_from_bytes(msg[0][1])
     address = msg["From"].split(" ")[1].rstrip(">").lstrip("<")
     date = msg["Date"].replace(" ", "")
-    if not os.path.isdir(config.folder_save + "/"+address):
-        os.mkdir(config.folder_save + "/" + address)
-    if not os.path.isdir(config.folder_save + "/"+address+"/"+date):
-        os.mkdir(config.folder_save + "/" + address+"/"+date)
-    os.chdir(config.folder_save + "/" + address+"/"+date)
+    if not os.path.isdir(config.folder_save +address):
+        os.mkdir(config.folder_save + address)
+    if not os.path.isdir(config.folder_save +address+"/"+date):
+        os.mkdir(config.folder_save +address+"/"+date)
+    os.chdir(config.folder_save + address+"/"+date)
     print_message(msg)
     get_attachments(msg)
     os.chdir(config.base_dir)
