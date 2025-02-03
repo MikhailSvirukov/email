@@ -16,8 +16,10 @@ def connect():
 
 def main():
     smtpobj = connect()
+    if not smtpobj:
+        print("Problems with connection")
+        sys.exit(1)
     new_mes = EmailMessage()
-
     parser=ArgumentParser(description="Program to send email messages via SMTP protocol")
     parser.add_argument('-t', '--to',type=str, help="set email address of single receiver", metavar="")
     parser.add_argument('-g', '--group', type=str, help="set name of file, with several email addresses of receivers", metavar="")

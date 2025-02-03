@@ -6,7 +6,8 @@ def main():
     argv=sys.argv
     imap = functions.connect()
     if not imap:
-        sys.exit(5)
+        print("Problems with connection")
+        sys.exit(1)
     imap.select("INBOX")
     res, folder = imap.uid("search",  "ALL")
     folder = folder[0].decode().split(" ")
